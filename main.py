@@ -1,18 +1,24 @@
-from credentials import username, password
 from sentinelsat import SentinelAPI
 import datetime
 import matplotlib.pyplot as plt
-import sys
 import pandas as pd
 import calendar
 
-# grab command line arguments
-lat, lon = sys.argv[1], sys.argv[2]
+# grab credentials
+usr = input('sentinelsat username: ')
+pwd = input('sentinelsat password: ')
+
+# grab coordinates
+lat = float(input('lat: '))
+lon = float(input('lon: '))
+
+# additional user input
+get_data = input('get data [y/n]? ')
 
 # instantiate connection
-api = SentinelAPI(username, password, 'https://apihub.copernicus.eu/apihub')
+api = SentinelAPI(usr, pwd, 'https://apihub.copernicus.eu/apihub')
 
-if len(sys.argv) > 3 and sys.argv[3] == 'get_data':
+if get_data == 'y':
     
     # query metadata for specific point, time range
     products_df = api.query(
@@ -53,13 +59,13 @@ if len(sys.argv) > 3 and sys.argv[3] == 'get_data':
         lambda x: x.strftime('%Y'))
 
     # save data to dataframe locally
-    products_df.to_csv('prods.csv')
+    products_df.to_csv('/data/prods.csv')
     
     # delete object
     del products_df
 
 # get data from local disk
-products_df = pd.read_csv('prods.csv')
+products_df = pd.read_csv('/data/prods.csv')
 
 # plot median cloudiness per month
 years = products_df['year'].unique()
@@ -73,10 +79,6 @@ for year in years:
     ax.set_ylabel('Image cloudiness %, median')
     ax.set_xticks(range(1, 13)); ax.set_xticklabels(calendar.month_abbr[1:])
 plt.legend()
-
-if len(sys.argv) > 4:
-    plt.savefig(f'{sys.argv[4]}.png')
-else:
-    plt.savefig('monthlycloudcover.png')
+plt.savefig('/data/monthlycloudcover.png')
 
 
